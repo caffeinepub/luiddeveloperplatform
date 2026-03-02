@@ -7,10 +7,13 @@ import { useStore } from "@/store/StoreContext";
 import {
   AlertCircle,
   CheckCheck,
+  ChevronDown,
+  ChevronUp,
   Clock,
   Copy,
   Download,
   ExternalLink,
+  History,
   Key,
   Mail,
   Package,
@@ -33,6 +36,9 @@ export function DashboardPage() {
   const [copiedId, setCopiedId] = useState<number | null>(null);
   const [newEmail, setNewEmail] = useState(currentUser?.email ?? "");
   const [emailSaving, setEmailSaving] = useState(false);
+  const [expandedHistoryOrderId, setExpandedHistoryOrderId] = useState<
+    number | null
+  >(null);
 
   if (!currentUser) {
     navigate("login");
@@ -218,80 +224,164 @@ export function DashboardPage() {
                     <div
                       key={order.id}
                       data-ocid={`dashboard.purchases.item.${idx + 1}`}
-                      className="rounded-xl border border-border bg-card p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4"
+                      className="rounded-xl border border-border bg-card p-4"
                     >
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap mb-1">
-                          <p className="font-semibold text-foreground truncate">
-                            {getProductName(order.productId)}
-                          </p>
-                          {product && (
-                            <CategoryBadge category={product.category} />
-                          )}
-                          {product?.updatedAt && (
-                            <span className="flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-full font-medium bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                              <Zap className="h-2.5 w-2.5" />
-                              Atualizado
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap mb-1">
+                            <p className="font-semibold text-foreground truncate">
+                              {getProductName(order.productId)}
+                            </p>
+                            {product && (
+                              <CategoryBadge category={product.category} />
+                            )}
+                            {product?.updatedAt && (
+                              <span className="flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-full font-medium bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                                <Zap className="h-2.5 w-2.5" />
+                                Atualizado
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
+                            <span className="flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              {new Date(order.createdAt).toLocaleDateString(
+                                "pt-BR",
+                              )}
                             </span>
+                            <span className="flex items-center gap-1">
+                              {order.orderType === "subscription" ? (
+                                <>
+                                  <RefreshCw className="h-3 w-3" /> Assinatura
+                                </>
+                              ) : (
+                                <>
+                                  <Package className="h-3 w-3" /> Compra Única
+                                </>
+                              )}
+                            </span>
+                            <span
+                              className={`px-1.5 py-0.5 rounded-full text-xs font-medium ${
+                                order.status === "completed"
+                                  ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
+                                  : "bg-muted text-muted-foreground"
+                              }`}
+                            >
+                              {order.status === "completed"
+                                ? "Concluído"
+                                : order.status}
+                            </span>
+                          </div>
+                          {product?.updatedAt && product.updateNote && (
+                            <p className="text-xs text-emerald-400/80 mt-1.5 flex items-center gap-1">
+                              <Zap className="h-3 w-3 shrink-0" />
+                              {product.updateNote}
+                            </p>
                           )}
                         </div>
-                        <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
-                          <span className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            {new Date(order.createdAt).toLocaleDateString(
-                              "pt-BR",
-                            )}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            {order.orderType === "subscription" ? (
-                              <>
-                                <RefreshCw className="h-3 w-3" /> Assinatura
-                              </>
-                            ) : (
-                              <>
-                                <Package className="h-3 w-3" /> Compra Única
-                              </>
-                            )}
-                          </span>
-                          <span
-                            className={`px-1.5 py-0.5 rounded-full text-xs font-medium ${
-                              order.status === "completed"
-                                ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
-                                : "bg-muted text-muted-foreground"
-                            }`}
-                          >
-                            {order.status === "completed"
-                              ? "Concluído"
-                              : order.status}
-                          </span>
-                        </div>
-                        {product?.updatedAt && product.updateNote && (
-                          <p className="text-xs text-emerald-400/80 mt-1.5 flex items-center gap-1">
-                            <Zap className="h-3 w-3 shrink-0" />
-                            {product.updateNote}
+                        <div className="flex flex-col items-end gap-2 shrink-0">
+                          <p className="font-display font-bold text-foreground">
+                            R$ {order.amount.toFixed(2)}
                           </p>
-                        )}
+                          <p className="text-xs font-mono text-muted-foreground truncate max-w-[160px]">
+                            {order.licenseKey}
+                          </p>
+                          <div className="flex items-center gap-1">
+                            {product?.fileName && (
+                              <Button
+                                data-ocid={`dashboard.purchases.download_button.${idx + 1}`}
+                                size="sm"
+                                variant="outline"
+                                onClick={handleDownload}
+                                className="h-7 text-xs border-primary/40 text-primary hover:bg-primary/10"
+                              >
+                                <Download className="mr-1 h-3 w-3" />
+                                Baixar
+                              </Button>
+                            )}
+                            {product?.versionHistory &&
+                              product.versionHistory.length > 0 && (
+                                <Button
+                                  data-ocid={`dashboard.purchases.history_button.${idx + 1}`}
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() =>
+                                    setExpandedHistoryOrderId(
+                                      expandedHistoryOrderId === order.id
+                                        ? null
+                                        : order.id,
+                                    )
+                                  }
+                                  className="h-7 text-xs text-muted-foreground hover:text-foreground"
+                                >
+                                  <History className="mr-1 h-3 w-3" />
+                                  Histórico
+                                  {expandedHistoryOrderId === order.id ? (
+                                    <ChevronUp className="ml-1 h-3 w-3" />
+                                  ) : (
+                                    <ChevronDown className="ml-1 h-3 w-3" />
+                                  )}
+                                </Button>
+                              )}
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex flex-col items-end gap-2 shrink-0">
-                        <p className="font-display font-bold text-foreground">
-                          R$ {order.amount.toFixed(2)}
-                        </p>
-                        <p className="text-xs font-mono text-muted-foreground truncate max-w-[160px]">
-                          {order.licenseKey}
-                        </p>
-                        {product?.fileName && (
-                          <Button
-                            data-ocid={`dashboard.purchases.download_button.${idx + 1}`}
-                            size="sm"
-                            variant="outline"
-                            onClick={handleDownload}
-                            className="h-7 text-xs border-primary/40 text-primary hover:bg-primary/10"
+                      {/* end inner flex row */}
+                      {/* Version History Expanded */}
+                      {expandedHistoryOrderId === order.id &&
+                        product?.versionHistory &&
+                        product.versionHistory.length > 0 && (
+                          <div
+                            data-ocid={`dashboard.purchases.history_panel.${idx + 1}`}
+                            className="mt-3 pt-3 border-t border-border space-y-2"
                           >
-                            <Download className="mr-1 h-3 w-3" />
-                            Baixar
-                          </Button>
+                            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                              <History className="h-3.5 w-3.5" />
+                              Histórico de Versões
+                            </p>
+                            <div className="space-y-2">
+                              {[...product.versionHistory]
+                                .reverse()
+                                .map((entry, hIdx) => (
+                                  <div
+                                    key={`${entry.version}-${entry.updatedAt}`}
+                                    className="flex gap-3 items-start"
+                                  >
+                                    <div className="flex flex-col items-center gap-1 shrink-0 mt-1">
+                                      <div className="h-1.5 w-1.5 rounded-full bg-primary" />
+                                      {hIdx <
+                                        product.versionHistory!.length - 1 && (
+                                        <div className="w-px bg-border h-3" />
+                                      )}
+                                    </div>
+                                    <div className="flex-1">
+                                      <div className="flex items-center gap-2 flex-wrap">
+                                        <span className="font-mono text-xs font-semibold text-foreground">
+                                          v{entry.version}
+                                        </span>
+                                        {hIdx === 0 && (
+                                          <span className="text-xs px-1.5 py-0.5 rounded-full font-medium bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                                            Atual
+                                          </span>
+                                        )}
+                                        <span className="text-xs text-muted-foreground/60 flex items-center gap-1">
+                                          <Clock className="h-3 w-3" />
+                                          {new Date(
+                                            entry.updatedAt,
+                                          ).toLocaleDateString("pt-BR")}
+                                        </span>
+                                      </div>
+                                      {entry.note && (
+                                        <p className="text-xs text-muted-foreground mt-0.5">
+                                          {entry.note}
+                                        </p>
+                                      )}
+                                    </div>
+                                  </div>
+                                ))}
+                            </div>
+                          </div>
                         )}
-                      </div>
                     </div>
                   );
                 })}

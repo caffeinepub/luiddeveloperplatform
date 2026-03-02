@@ -18,6 +18,12 @@ export interface User {
   purchasedProductIds: number[];
 }
 
+export interface VersionHistoryEntry {
+  version: string;
+  note?: string;
+  updatedAt: number;
+}
+
 export interface Product {
   id: number;
   name: string;
@@ -31,6 +37,7 @@ export interface Product {
   fileSize?: number;
   updatedAt?: number;
   updateNote?: string;
+  versionHistory?: VersionHistoryEntry[];
   isActive: boolean;
   createdAt: number;
   rating: number;
@@ -335,7 +342,10 @@ export interface AppState {
   addProduct: (
     data: Omit<Product, "id" | "createdAt" | "rating" | "reviewCount">,
   ) => Product;
-  updateProduct: (id: number, data: Partial<Product>) => void;
+  updateProduct: (
+    id: number,
+    data: Partial<Product> & { _appendVersionHistory?: VersionHistoryEntry },
+  ) => void;
   deleteProduct: (id: number) => void;
   toggleProductActive: (id: number) => void;
   toggleUserActive: (id: number) => void;
@@ -500,11 +510,28 @@ export function useAppStore(): AppState {
     [],
   );
 
-  const updateProduct = useCallback((id: number, data: Partial<Product>) => {
-    setProducts((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, ...data } : p)),
-    );
-  }, []);
+  const updateProduct = useCallback(
+    (
+      id: number,
+      data: Partial<Product> & { _appendVersionHistory?: VersionHistoryEntry },
+    ) => {
+      const { _appendVersionHistory, ...rest } = data;
+      setProducts((prev) =>
+        prev.map((p) => {
+          if (p.id !== id) return p;
+          const updated = { ...p, ...rest };
+          if (_appendVersionHistory) {
+            updated.versionHistory = [
+              ...(p.versionHistory ?? []),
+              _appendVersionHistory,
+            ];
+          }
+          return updated;
+        }),
+      );
+    },
+    [],
+  );
 
   const deleteProduct = useCallback((id: number) => {
     localStorage.removeItem(`ldp_file_${id}`);

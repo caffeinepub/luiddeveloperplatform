@@ -8,8 +8,10 @@ import type { OrderType } from "@/store/useAppStore";
 import {
   ArrowLeft,
   CheckCheck,
+  Clock,
   Copy,
   Download,
+  History,
   Key,
   RefreshCw,
   ShoppingCart,
@@ -136,6 +138,58 @@ export function ProductDetailPage() {
                       <Tag className="h-3 w-3" />
                       {tag}
                     </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Version History */}
+            {product.versionHistory && product.versionHistory.length > 0 && (
+              <div className="rounded-xl border border-border bg-card p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <History className="h-5 w-5 text-primary" />
+                  <h3 className="font-display font-semibold text-foreground">
+                    Histórico de Versões
+                  </h3>
+                </div>
+                <div className="space-y-3">
+                  {[...product.versionHistory].reverse().map((entry, idx) => (
+                    <div
+                      key={`${entry.version}-${entry.updatedAt}`}
+                      data-ocid={`product.version_history.item.${idx + 1}`}
+                      className="flex gap-4 pb-3 border-b border-border last:border-0 last:pb-0"
+                    >
+                      <div className="flex flex-col items-center gap-1 shrink-0">
+                        <div className="h-2 w-2 rounded-full bg-primary mt-1.5" />
+                        {idx < product.versionHistory!.length - 1 && (
+                          <div className="flex-1 w-px bg-border min-h-[16px]" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-mono text-sm font-semibold text-foreground">
+                            v{entry.version}
+                          </span>
+                          {idx === 0 && (
+                            <span className="text-xs px-1.5 py-0.5 rounded-full font-medium bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                              Mais recente
+                            </span>
+                          )}
+                        </div>
+                        {entry.note && (
+                          <p className="text-sm text-muted-foreground mt-0.5">
+                            {entry.note}
+                          </p>
+                        )}
+                        <p className="text-xs text-muted-foreground/60 mt-1 flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {new Date(entry.updatedAt).toLocaleDateString(
+                            "pt-BR",
+                            { day: "2-digit", month: "long", year: "numeric" },
+                          )}
+                        </p>
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>

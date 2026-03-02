@@ -21,7 +21,11 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useRouter } from "@/store/RouterContext";
 import { useStore } from "@/store/StoreContext";
-import type { Category, Product } from "@/store/useAppStore";
+import type {
+  Category,
+  Product,
+  VersionHistoryEntry,
+} from "@/store/useAppStore";
 import {
   Activity,
   AlertCircle,
@@ -266,11 +270,19 @@ export function AdminPage() {
       }
 
       // Handle update note
-      let updateFields: Partial<Product> = {};
+      let updateFields: Partial<Product> & {
+        _appendVersionHistory?: VersionHistoryEntry;
+      } = {};
       if (markAsUpdated) {
+        const now = Date.now();
         updateFields = {
-          updatedAt: Date.now(),
+          updatedAt: now,
           updateNote: updateNote.trim() || undefined,
+          _appendVersionHistory: {
+            version: formData.version.trim(),
+            note: updateNote.trim() || undefined,
+            updatedAt: now,
+          },
         };
       }
 
