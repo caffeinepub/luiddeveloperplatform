@@ -336,6 +336,8 @@ export interface AppState {
   deleteProduct: (id: number) => void;
   toggleProductActive: (id: number) => void;
   toggleUserActive: (id: number) => void;
+  deleteUser: (id: number) => void;
+  resetOrders: () => void;
   purchaseProduct: (
     productId: number,
     orderType: OrderType,
@@ -520,6 +522,21 @@ export function useAppStore(): AppState {
     });
   }, []);
 
+  const deleteUser = useCallback((id: number) => {
+    setUsers((prev) => prev.filter((u) => u.id !== id));
+    setOrders((prev) => prev.filter((o) => o.userId !== id));
+    setLicenses((prev) => prev.filter((l) => l.userId !== id));
+  }, []);
+
+  const resetOrders = useCallback(() => {
+    setOrders([]);
+    setLicenses([]);
+    setUsers((prev) => prev.map((u) => ({ ...u, purchasedProductIds: [] })));
+    setCurrentUser((prev) =>
+      prev ? { ...prev, purchasedProductIds: [] } : prev,
+    );
+  }, []);
+
   const purchaseProduct = useCallback(
     (
       productId: number,
@@ -621,6 +638,8 @@ export function useAppStore(): AppState {
     deleteProduct,
     toggleProductActive,
     toggleUserActive,
+    deleteUser,
+    resetOrders,
     purchaseProduct,
     updateUserEmail,
   };

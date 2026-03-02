@@ -74,6 +74,8 @@ export function AdminPage() {
     orders,
     toggleProductActive,
     toggleUserActive,
+    deleteUser,
+    resetOrders,
     addProduct,
     updateProduct,
     deleteProduct,
@@ -84,6 +86,10 @@ export function AdminPage() {
   const [productFormOpen, setProductFormOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+  const [deleteUserConfirmId, setDeleteUserConfirmId] = useState<number | null>(
+    null,
+  );
+  const [resetOrdersConfirm, setResetOrdersConfirm] = useState(false);
   const [formData, setFormData] = useState<ProductFormData>(emptyForm);
   const [formError, setFormError] = useState("");
   const [formLoading, setFormLoading] = useState(false);
@@ -312,11 +318,23 @@ export function AdminPage() {
 
             {/* Revenue by category */}
             <div className="rounded-xl border border-border bg-card p-6">
-              <div className="flex items-center gap-2 mb-5">
-                <TrendingUp className="h-5 w-5 text-primary" />
-                <h3 className="font-display font-semibold text-foreground">
-                  Receita por Categoria
-                </h3>
+              <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-primary" />
+                  <h3 className="font-display font-semibold text-foreground">
+                    Receita por Categoria
+                  </h3>
+                </div>
+                <Button
+                  data-ocid="admin.reset_orders_button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setResetOrdersConfirm(true)}
+                  className="text-xs h-7 border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                >
+                  <RefreshCw className="mr-1.5 h-3 w-3" />
+                  Resetar Receita
+                </Button>
               </div>
               <div className="space-y-3">
                 {categoryRevenue
@@ -611,30 +629,43 @@ export function AdminPage() {
                             </span>
                           </td>
                           <td className="px-4 py-3 text-right">
-                            <Button
-                              data-ocid={`admin.user.toggle_button.${idx + 1}`}
-                              size="sm"
-                              variant="outline"
-                              disabled={isSelf}
-                              onClick={() => {
-                                toggleUserActive(user.id);
-                                toast.success(
-                                  `Usuário ${user.isActive ? "desativado" : "ativado"}.`,
-                                );
-                              }}
-                              className={`text-xs h-7 ${isSelf ? "opacity-50 cursor-not-allowed" : ""}`}
-                            >
-                              {user.isActive ? (
-                                <>
-                                  <ChevronDown className="mr-1 h-3 w-3" />{" "}
-                                  Desativar
-                                </>
-                              ) : (
-                                <>
-                                  <ChevronUp className="mr-1 h-3 w-3" /> Ativar
-                                </>
-                              )}
-                            </Button>
+                            <div className="flex items-center justify-end gap-1">
+                              <Button
+                                data-ocid={`admin.user.toggle_button.${idx + 1}`}
+                                size="sm"
+                                variant="outline"
+                                disabled={isSelf}
+                                onClick={() => {
+                                  toggleUserActive(user.id);
+                                  toast.success(
+                                    `Usuário ${user.isActive ? "desativado" : "ativado"}.`,
+                                  );
+                                }}
+                                className={`text-xs h-7 ${isSelf ? "opacity-50 cursor-not-allowed" : ""}`}
+                              >
+                                {user.isActive ? (
+                                  <>
+                                    <ChevronDown className="mr-1 h-3 w-3" />{" "}
+                                    Desativar
+                                  </>
+                                ) : (
+                                  <>
+                                    <ChevronUp className="mr-1 h-3 w-3" />{" "}
+                                    Ativar
+                                  </>
+                                )}
+                              </Button>
+                              <Button
+                                data-ocid={`admin.user.delete_button.${idx + 1}`}
+                                size="sm"
+                                variant="ghost"
+                                disabled={isSelf}
+                                onClick={() => setDeleteUserConfirmId(user.id)}
+                                className={`h-7 w-7 p-0 hover:bg-destructive/10 text-destructive ${isSelf ? "opacity-50 cursor-not-allowed" : ""}`}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
                           </td>
                         </tr>
                       );
@@ -861,7 +892,7 @@ export function AdminPage() {
         </DialogContent>
       </Dialog>
 
-      {/* ── Delete Confirm Modal ───────────────────────────── */}
+      {/* ── Delete Product Confirm Modal ───────────────────── */}
       <Dialog
         open={deleteConfirmId !== null}
         onOpenChange={() => setDeleteConfirmId(null)}
@@ -900,6 +931,111 @@ export function AdminPage() {
             >
               <Trash2 className="mr-2 h-4 w-4" />
               Remover
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Delete User Confirm Modal ──────────────────────── */}
+      <Dialog
+        open={deleteUserConfirmId !== null}
+        onOpenChange={() => setDeleteUserConfirmId(null)}
+      >
+        <DialogContent className="max-w-sm border-border bg-card">
+          <DialogHeader>
+            <DialogTitle className="font-display flex items-center gap-2 text-destructive">
+              <Trash2 className="h-5 w-5" />
+              Excluir Usuário
+            </DialogTitle>
+            <DialogDescription>
+              Esta ação é irreversível. O usuário, seus pedidos e licenças serão
+              removidos permanentemente.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-2">
+            {deleteUserConfirmId && (
+              <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-3">
+                <p className="text-sm text-foreground font-medium">
+                  {users.find((u) => u.id === deleteUserConfirmId)?.username}
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {users.find((u) => u.id === deleteUserConfirmId)?.email}
+                </p>
+              </div>
+            )}
+          </div>
+          <DialogFooter className="gap-2">
+            <Button
+              data-ocid="admin.user.delete_cancel_button"
+              variant="outline"
+              onClick={() => setDeleteUserConfirmId(null)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              data-ocid="admin.user.delete_confirm_button"
+              variant="destructive"
+              onClick={() => {
+                if (deleteUserConfirmId) {
+                  deleteUser(deleteUserConfirmId);
+                  setDeleteUserConfirmId(null);
+                  toast.success("Usuário excluído.");
+                }
+              }}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Excluir
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Reset Orders Confirm Modal ─────────────────────── */}
+      <Dialog
+        open={resetOrdersConfirm}
+        onOpenChange={() => setResetOrdersConfirm(false)}
+      >
+        <DialogContent className="max-w-sm border-border bg-card">
+          <DialogHeader>
+            <DialogTitle className="font-display flex items-center gap-2 text-destructive">
+              <RefreshCw className="h-5 w-5" />
+              Resetar Registro de Receita
+            </DialogTitle>
+            <DialogDescription>
+              Todos os pedidos, licenças e histórico de compras dos usuários
+              serão apagados permanentemente. Esta ação não pode ser desfeita.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-2">
+            <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-3">
+              <p className="text-sm text-foreground font-medium">
+                {orders.length} pedido(s) serão removidos
+              </p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Receita total: R${" "}
+                {orders.reduce((s, o) => s + o.amount, 0).toFixed(2)}
+              </p>
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button
+              data-ocid="admin.reset_orders.cancel_button"
+              variant="outline"
+              onClick={() => setResetOrdersConfirm(false)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              data-ocid="admin.reset_orders.confirm_button"
+              variant="destructive"
+              onClick={() => {
+                resetOrders();
+                setResetOrdersConfirm(false);
+                toast.success("Registro de receita resetado com sucesso.");
+              }}
+            >
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Resetar
             </Button>
           </DialogFooter>
         </DialogContent>
