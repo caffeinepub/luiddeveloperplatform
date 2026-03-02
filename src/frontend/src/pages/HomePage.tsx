@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useRouter } from "@/store/RouterContext";
+import { useStore } from "@/store/StoreContext";
 import {
   ArrowRight,
   Bot,
@@ -11,12 +12,12 @@ import {
   ShieldCheck,
   Star,
   TrendingUp,
-  Users,
   Zap,
 } from "lucide-react";
 
 export function HomePage() {
   const { navigate } = useRouter();
+  const { currentUser } = useStore();
 
   return (
     <div className="min-h-screen">
@@ -100,25 +101,26 @@ export function HomePage() {
               Explorar Scripts
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
-            <Button
-              data-ocid="hero.register_button"
-              size="lg"
-              variant="outline"
-              onClick={() => navigate("register")}
-              className="h-12 px-8 border-border hover:bg-accent font-semibold"
-            >
-              Criar Conta Grátis
-            </Button>
+            {!currentUser && (
+              <Button
+                data-ocid="hero.register_button"
+                size="lg"
+                variant="outline"
+                onClick={() => navigate("register")}
+                className="h-12 px-8 border-border hover:bg-accent font-semibold"
+              >
+                Criar Conta Grátis
+              </Button>
+            )}
           </div>
 
           {/* Stats Strip */}
           <div
-            className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto animate-fade-in"
+            className="mt-16 grid grid-cols-3 gap-4 max-w-2xl mx-auto animate-fade-in"
             style={{ animationDelay: "0.6s" }}
           >
             {[
               { icon: Code2, value: "500+", label: "Scripts" },
-              { icon: Users, value: "10.000+", label: "Usuários" },
               { icon: Download, value: "50.000+", label: "Downloads" },
               { icon: Star, value: "4.9", label: "Avaliação" },
             ].map(({ icon: Icon, value, label }) => (
@@ -424,15 +426,17 @@ export function HomePage() {
                 <Zap className="mr-2 h-4 w-4" />
                 Explorar Scripts
               </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                onClick={() => navigate("register")}
-                className="h-12 px-8 border-border hover:bg-accent font-semibold"
-              >
-                Criar Conta Grátis
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
+              {!currentUser && (
+                <Button
+                  size="lg"
+                  variant="outline"
+                  onClick={() => navigate("register")}
+                  className="h-12 px-8 border-border hover:bg-accent font-semibold"
+                >
+                  Criar Conta Grátis
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              )}
             </div>
           </div>
         </div>
