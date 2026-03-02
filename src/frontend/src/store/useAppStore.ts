@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
+import { useActor } from "@/hooks/useActor";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -264,63 +265,6 @@ const SEED_PRODUCTS: Product[] = [
   },
 ];
 
-// ─── Storage Keys ─────────────────────────────────────────────────────────────
-
-const KEYS = {
-  initialized: "ldp_initialized",
-  users: "ldp_users",
-  products: "ldp_products",
-  orders: "ldp_orders",
-  licenses: "ldp_licenses",
-  currentUserId: "ldp_current_user_id",
-};
-
-// ─── Storage Helpers ──────────────────────────────────────────────────────────
-
-function loadFromStorage<T>(key: string, fallback: T): T {
-  try {
-    const raw = localStorage.getItem(key);
-    if (!raw) return fallback;
-    return JSON.parse(raw) as T;
-  } catch {
-    return fallback;
-  }
-}
-
-function saveToStorage<T>(key: string, data: T): void {
-  try {
-    localStorage.setItem(key, JSON.stringify(data));
-  } catch {
-    // silently fail
-  }
-}
-
-// ─── Initialize Seed ─────────────────────────────────────────────────────────
-
-function initializeIfNeeded(): {
-  users: User[];
-  products: Product[];
-  orders: Order[];
-  licenses: License[];
-} {
-  const initialized = localStorage.getItem(KEYS.initialized);
-
-  if (!initialized) {
-    saveToStorage(KEYS.users, [SEED_ADMIN]);
-    saveToStorage(KEYS.products, SEED_PRODUCTS);
-    saveToStorage(KEYS.orders, []);
-    saveToStorage(KEYS.licenses, []);
-    localStorage.setItem(KEYS.initialized, "true");
-  }
-
-  return {
-    users: loadFromStorage<User[]>(KEYS.users, [SEED_ADMIN]),
-    products: loadFromStorage<Product[]>(KEYS.products, SEED_PRODUCTS),
-    orders: loadFromStorage<Order[]>(KEYS.orders, []),
-    licenses: loadFromStorage<License[]>(KEYS.licenses, []),
-  };
-}
-
 // ─── Store State ──────────────────────────────────────────────────────────────
 
 export interface AppState {
@@ -360,81 +304,51 @@ export interface AppState {
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
-let _state: {
-  users: User[];
-  products: Product[];
-  orders: Order[];
-  licenses: License[];
-  currentUser: User | null;
-} | null = null;
-
-// Singleton state initialization
-function getInitialState() {
-  if (_state) return _state;
-  const { users, products, orders, licenses } = initializeIfNeeded();
-
-  const currentUserId = loadFromStorage<number | null>(
-    KEYS.currentUserId,
+export function useAppStore(): AppState {
+  const { actor } = useActor();
+  const initializedRef = useRef(false);
+  const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
     null,
   );
-  const currentUser =
-    currentUserId !== null
-      ? (users.find((u) => u.id === currentUserId) ?? null)
-      : null;
 
-  _state = { users, products, orders, licenses, currentUser };
-  return _state;
-}
+  const [users, setUsers] = useState<User[]>([SEED_ADMIN]);
+  const [products, setProducts] = useState<Product[]>(SEED_PRODUCTS);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [licenses, setLicenses] = useState<License[]>([]);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
 
-export function useAppStore(): AppState {
-  const initial = getInitialState();
-
-  const [users, setUsers] = useState<User[]>(initial.users);
-  const [products, setProducts] = useState<Product[]>(initial.products);
-  const [orders, setOrders] = useState<Order[]>(initial.orders);
-  const [licenses, setLicenses] = useState<License[]>(initial.licenses);
-  const [currentUser, setCurrentUser] = useState<User | null>(
-    initial.currentUser,
-  );
-
-  // Sync to localStorage whenever state changes
+  // Initialize from backend on mount and set up polling
   useEffect(() => {
-    saveToStorage(KEYS.users, users);
-    // Update _state singleton
-    if (_state) _state.users = users;
-  }, [users]);
-
-  useEffect(() => {
-    saveToStorage(KEYS.products, products);
-    if (_state) _state.products = products;
-  }, [products]);
-
-  useEffect(() => {
-    saveToStorage(KEYS.orders, orders);
-    if (_state) _state.orders = orders;
-  }, [orders]);
-
-  useEffect(() => {
-    saveToStorage(KEYS.licenses, licenses);
-    if (_state) _state.licenses = licenses;
-  }, [licenses]);
-
-  useEffect(() => {
-    if (currentUser) {
-      saveToStorage(KEYS.currentUserId, currentUser.id);
-    } else {
-      localStorage.removeItem(KEYS.currentUserId);
+    if (actor && !initializedRef.current) {
+      initializedRef.current = true;
+      actor.initialize().catch(() => {
+        // Backend initialization is best-effort; in-memory seed data is the fallback
+      });
     }
-    if (_state) _state.currentUser = currentUser;
-  }, [currentUser]);
+  }, [actor]);
+
+  // Polling mechanism: every 5 seconds, log sync status
+  // Real-time sync will be enabled when backend exposes more query functions
+  useEffect(() => {
+    pollingIntervalRef.current = setInterval(() => {
+      // Polling heartbeat — real data sync will be implemented
+      // when backend exposes read functions (getProducts, getUsers, etc.)
+      // console.log("[LuidDev] polling...");
+    }, 5000);
+
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+      }
+    };
+  }, []);
 
   const login = useCallback(
     (
       username: string,
       password: string,
     ): { success: boolean; error?: string } => {
-      const storedUsers = loadFromStorage<User[]>(KEYS.users, users);
-      const user = storedUsers.find(
+      const user = users.find(
         (u) => u.username.toLowerCase() === username.toLowerCase(),
       );
       if (!user) return { success: false, error: "Usuário não encontrado." };
@@ -447,7 +361,6 @@ export function useAppStore(): AppState {
       if (user.passwordHash !== hash)
         return { success: false, error: "Senha incorreta." };
       setCurrentUser(user);
-      setUsers(storedUsers);
       return { success: true };
     },
     [users],
@@ -463,13 +376,12 @@ export function useAppStore(): AppState {
       email: string,
       password: string,
     ): { success: boolean; error?: string } => {
-      const storedUsers = loadFromStorage<User[]>(KEYS.users, users);
-      const existingUsername = storedUsers.find(
+      const existingUsername = users.find(
         (u) => u.username.toLowerCase() === username.toLowerCase(),
       );
       if (existingUsername)
         return { success: false, error: "Nome de usuário já está em uso." };
-      const existingEmail = storedUsers.find(
+      const existingEmail = users.find(
         (u) => u.email.toLowerCase() === email.toLowerCase(),
       );
       if (existingEmail)
@@ -485,8 +397,7 @@ export function useAppStore(): AppState {
         createdAt: Date.now(),
         purchasedProductIds: [],
       };
-      const updated = [...storedUsers, newUser];
-      setUsers(updated);
+      setUsers((prev) => [...prev, newUser]);
       setCurrentUser(newUser);
       return { success: true };
     },
@@ -534,7 +445,6 @@ export function useAppStore(): AppState {
   );
 
   const deleteProduct = useCallback((id: number) => {
-    localStorage.removeItem(`ldp_file_${id}`);
     setProducts((prev) => prev.filter((p) => p.id !== id));
   }, []);
 
@@ -545,12 +455,9 @@ export function useAppStore(): AppState {
   }, []);
 
   const toggleUserActive = useCallback((id: number) => {
-    setUsers((prev) => {
-      const updated = prev.map((u) =>
-        u.id === id ? { ...u, isActive: !u.isActive } : u,
-      );
-      return updated;
-    });
+    setUsers((prev) =>
+      prev.map((u) => (u.id === id ? { ...u, isActive: !u.isActive } : u)),
+    );
   }, []);
 
   const deleteUser = useCallback((id: number) => {

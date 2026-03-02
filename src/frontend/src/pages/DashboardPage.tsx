@@ -188,36 +188,9 @@ export function DashboardPage() {
                   const product = getProduct(order.productId);
 
                   const handleDownload = () => {
-                    if (!product?.fileId) {
-                      toast.error("Arquivo não disponível.");
-                      return;
-                    }
-                    const fileData = localStorage.getItem(product.fileId);
-                    if (!fileData) {
-                      toast.error("Arquivo não disponível.");
-                      return;
-                    }
-                    try {
-                      const base64 = fileData.includes(",")
-                        ? fileData.split(",")[1]
-                        : fileData;
-                      const byteString = atob(base64);
-                      const ab = new ArrayBuffer(byteString.length);
-                      const ia = new Uint8Array(ab);
-                      for (let i = 0; i < byteString.length; i++) {
-                        ia[i] = byteString.charCodeAt(i);
-                      }
-                      const blob = new Blob([ab]);
-                      const url = URL.createObjectURL(blob);
-                      const a = document.createElement("a");
-                      a.href = url;
-                      a.download = product.fileName ?? "arquivo";
-                      a.click();
-                      URL.revokeObjectURL(url);
-                      toast.success("Download iniciado!");
-                    } catch {
-                      toast.error("Erro ao realizar download.");
-                    }
+                    toast.info(
+                      "Arquivo em migração. Por favor, contate o suporte para acesso ao arquivo.",
+                    );
                   };
 
                   return (

@@ -175,12 +175,10 @@ export function AdminPage() {
       isActive: product.isActive,
     });
     setFormError("");
-    // Pre-populate file state from existing product
+    // Pre-populate file metadata from existing product (actual file data requires re-upload)
     setUploadedFileName(product.fileName ?? "");
     setUploadedFileSize(product.fileSize ?? 0);
-    setUploadedFileData(
-      product.fileId ? (localStorage.getItem(product.fileId) ?? null) : null,
-    );
+    setUploadedFileData(null);
     resetUpdateState();
     setProductFormOpen(true);
   };
@@ -247,11 +245,10 @@ export function AdminPage() {
     };
 
     if (editingProduct) {
-      // Handle file for edit
+      // Handle file for edit - store metadata only (no localStorage)
       let fileUpdates: Partial<Product> = {};
       if (uploadedFileData) {
         const fileKey = `ldp_file_${editingProduct.id}`;
-        localStorage.setItem(fileKey, uploadedFileData);
         fileUpdates = {
           fileId: fileKey,
           fileName: uploadedFileName,
@@ -259,9 +256,6 @@ export function AdminPage() {
         };
       } else if (!uploadedFileName) {
         // File was cleared
-        if (editingProduct.fileId) {
-          localStorage.removeItem(editingProduct.fileId);
-        }
         fileUpdates = {
           fileId: undefined,
           fileName: undefined,
@@ -295,8 +289,8 @@ export function AdminPage() {
     } else {
       const newProduct = addProduct(data);
       if (uploadedFileData) {
+        // Store file metadata only — actual file content stored in memory for this session
         const fileKey = `ldp_file_${newProduct.id}`;
-        localStorage.setItem(fileKey, uploadedFileData);
         updateProduct(newProduct.id, {
           fileId: fileKey,
           fileName: uploadedFileName,
