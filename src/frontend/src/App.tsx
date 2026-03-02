@@ -5,6 +5,7 @@ import { AdminPage } from "@/pages/AdminPage";
 import { DashboardPage } from "@/pages/DashboardPage";
 import { HomePage } from "@/pages/HomePage";
 import { LoginPage } from "@/pages/LoginPage";
+import { LuidAIPage } from "@/pages/LuidAIPage";
 import { MarketplacePage } from "@/pages/MarketplacePage";
 import { ProductDetailPage } from "@/pages/ProductDetailPage";
 import { RegisterPage } from "@/pages/RegisterPage";
@@ -30,6 +31,8 @@ function AppContent() {
         return <DashboardPage />;
       case "admin":
         return <AdminPage />;
+      case "luid-ai":
+        return <LuidAIPage />;
       default:
         return <HomePage />;
     }

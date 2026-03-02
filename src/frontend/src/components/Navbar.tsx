@@ -8,6 +8,7 @@ import {
 import { useRouter } from "@/store/RouterContext";
 import { useStore } from "@/store/StoreContext";
 import {
+  BrainCircuit,
   ChevronDown,
   LayoutDashboard,
   LogOut,
@@ -83,6 +84,21 @@ export function Navbar() {
             navLink("dashboard", "Dashboard", "nav.dashboard_link")}
           {currentUser?.role === "admin" &&
             navLink("admin", "Admin", "nav.admin_link")}
+          <button
+            type="button"
+            data-ocid="nav.luid_ai_link"
+            onClick={() => {
+              navigate("luid-ai");
+              setMobileOpen(false);
+            }}
+            className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <BrainCircuit className="h-3.5 w-3.5 text-primary/70" />
+            Luid AI
+            <span className="rounded-full border border-primary/30 bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary leading-none">
+              Em Breve
+            </span>
+          </button>
         </nav>
 
         {/* Desktop Auth */}
@@ -215,6 +231,21 @@ export function Navbar() {
                 Painel Admin
               </button>
             )}
+            <button
+              type="button"
+              data-ocid="nav.luid_ai_link"
+              onClick={() => {
+                navigate("luid-ai");
+                setMobileOpen(false);
+              }}
+              className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md hover:bg-accent text-left text-muted-foreground"
+            >
+              <BrainCircuit className="h-4 w-4 text-primary/70" />
+              Luid AI
+              <span className="ml-auto rounded-full border border-primary/30 bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary leading-none">
+                Em Breve
+              </span>
+            </button>
             <div className="mt-2 flex flex-col gap-2 border-t border-border pt-2">
               {currentUser ? (
                 <button

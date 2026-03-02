@@ -7,7 +7,8 @@ export type Page =
   | "login"
   | "register"
   | "dashboard"
-  | "admin";
+  | "admin"
+  | "luid-ai";
 
 interface RouterState {
   currentPage: Page;
