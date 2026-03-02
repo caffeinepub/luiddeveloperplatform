@@ -69,6 +69,9 @@ export function Navbar() {
           <span className="font-display font-bold text-base tracking-tight">
             <span className="text-foreground">Luid</span>
             <span className="text-gradient">Dev</span>
+            <span className="ml-1.5 text-[10px] font-normal text-muted-foreground hidden sm:inline">
+              by LuidCorporation
+            </span>
           </span>
         </button>
 

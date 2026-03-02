@@ -47,9 +47,22 @@ export function HomePage() {
 
         <div className="container mx-auto px-4 text-center relative z-10">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 mb-8 text-sm font-medium text-primary animate-fade-in">
+          <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 mb-4 text-sm font-medium text-primary animate-fade-in">
             <Zap className="h-3.5 w-3.5" />
             Marketplace de Automações
+          </div>
+
+          {/* LuidCorporation label */}
+          <div
+            className="flex justify-center mb-6 animate-fade-in"
+            style={{ animationDelay: "0.1s" }}
+          >
+            <span className="text-xs text-muted-foreground uppercase tracking-widest">
+              Uma divisão da{" "}
+              <span className="text-primary font-semibold tracking-wide">
+                LuidCorporation
+              </span>
+            </span>
           </div>
 
           {/* Headline */}

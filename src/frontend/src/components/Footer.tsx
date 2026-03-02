@@ -1,5 +1,5 @@
 import { useRouter } from "@/store/RouterContext";
-import { Heart, Zap } from "lucide-react";
+import { Zap } from "lucide-react";
 
 export function Footer() {
   const { navigate } = useRouter();
@@ -94,20 +94,11 @@ export function Footer() {
 
         <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-border pt-8 sm:flex-row">
           <p className="text-xs text-muted-foreground">
-            © {year}. Feito com{" "}
-            <Heart className="inline h-3 w-3 text-destructive fill-destructive" />{" "}
-            usando{" "}
-            <a
-              href={`https://caffeine.ai?utm_source=caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(window.location.hostname)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline hover:text-foreground transition-colors"
-            >
-              caffeine.ai
-            </a>
+            © {year} LuidCorporation. Todos os direitos reservados.
           </p>
           <p className="text-xs text-muted-foreground">
-            LuidDeveloperPlatform &mdash; Todos os direitos reservados
+            LuidDeveloperPlatform &mdash; Uma divisão da{" "}
+            <span className="text-primary font-semibold">LuidCorporation</span>
           </p>
         </div>
       </div>
