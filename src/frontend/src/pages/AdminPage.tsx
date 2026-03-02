@@ -30,16 +30,20 @@ import {
   DollarSign,
   LayoutDashboard,
   Package,
+  Paperclip,
   Pencil,
   Plus,
   RefreshCw,
   ShieldCheck,
   Trash2,
   TrendingUp,
+  Upload,
   UserCheck,
   Users,
+  X,
+  Zap,
 } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 
 type AdminTab = "dashboard" | "products" | "users";
@@ -94,6 +98,17 @@ export function AdminPage() {
   const [formError, setFormError] = useState("");
   const [formLoading, setFormLoading] = useState(false);
 
+  // File upload state
+  const [uploadedFileData, setUploadedFileData] = useState<string | null>(null);
+  const [uploadedFileName, setUploadedFileName] = useState("");
+  const [uploadedFileSize, setUploadedFileSize] = useState(0);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Update note state
+  const [markAsUpdated, setMarkAsUpdated] = useState(false);
+  const [updateNote, setUpdateNote] = useState("");
+
   if (!currentUser || currentUser.role !== "admin") {
     navigate("home");
     return null;
@@ -123,10 +138,23 @@ export function AdminPage() {
   );
 
   // ── Product Form ──────────────────────────────────────────────────
+  const resetFileState = () => {
+    setUploadedFileData(null);
+    setUploadedFileName("");
+    setUploadedFileSize(0);
+  };
+
+  const resetUpdateState = () => {
+    setMarkAsUpdated(false);
+    setUpdateNote("");
+  };
+
   const openAddForm = () => {
     setEditingProduct(null);
     setFormData(emptyForm);
     setFormError("");
+    resetFileState();
+    resetUpdateState();
     setProductFormOpen(true);
   };
 
@@ -143,7 +171,32 @@ export function AdminPage() {
       isActive: product.isActive,
     });
     setFormError("");
+    // Pre-populate file state from existing product
+    setUploadedFileName(product.fileName ?? "");
+    setUploadedFileSize(product.fileSize ?? 0);
+    setUploadedFileData(
+      product.fileId ? (localStorage.getItem(product.fileId) ?? null) : null,
+    );
+    resetUpdateState();
     setProductFormOpen(true);
+  };
+
+  const handleFileSelect = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result as string;
+      setUploadedFileData(result);
+      setUploadedFileName(file.name);
+      setUploadedFileSize(file.size);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return "0 B";
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
   const handleFormSubmit = async () => {
@@ -190,10 +243,54 @@ export function AdminPage() {
     };
 
     if (editingProduct) {
-      updateProduct(editingProduct.id, data);
+      // Handle file for edit
+      let fileUpdates: Partial<Product> = {};
+      if (uploadedFileData) {
+        const fileKey = `ldp_file_${editingProduct.id}`;
+        localStorage.setItem(fileKey, uploadedFileData);
+        fileUpdates = {
+          fileId: fileKey,
+          fileName: uploadedFileName,
+          fileSize: uploadedFileSize,
+        };
+      } else if (!uploadedFileName) {
+        // File was cleared
+        if (editingProduct.fileId) {
+          localStorage.removeItem(editingProduct.fileId);
+        }
+        fileUpdates = {
+          fileId: undefined,
+          fileName: undefined,
+          fileSize: undefined,
+        };
+      }
+
+      // Handle update note
+      let updateFields: Partial<Product> = {};
+      if (markAsUpdated) {
+        updateFields = {
+          updatedAt: Date.now(),
+          updateNote: updateNote.trim() || undefined,
+        };
+      }
+
+      updateProduct(editingProduct.id, {
+        ...data,
+        ...fileUpdates,
+        ...updateFields,
+      });
       toast.success("Produto atualizado com sucesso!");
     } else {
-      addProduct(data);
+      const newProduct = addProduct(data);
+      if (uploadedFileData) {
+        const fileKey = `ldp_file_${newProduct.id}`;
+        localStorage.setItem(fileKey, uploadedFileData);
+        updateProduct(newProduct.id, {
+          fileId: fileKey,
+          fileName: uploadedFileName,
+          fileSize: uploadedFileSize,
+        });
+      }
       toast.success("Produto adicionado com sucesso!");
     }
 
@@ -476,12 +573,29 @@ export function AdminPage() {
                         className="border-b border-border last:border-0 hover:bg-muted/20 transition-colors"
                       >
                         <td className="px-4 py-3">
-                          <p className="font-medium text-foreground">
-                            {product.name}
-                          </p>
-                          <p className="text-xs text-muted-foreground font-mono">
-                            v{product.version}
-                          </p>
+                          <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
+                            <p className="font-medium text-foreground">
+                              {product.name}
+                            </p>
+                            {product.updatedAt && (
+                              <span className="text-xs px-1.5 py-0.5 rounded-full font-medium bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                                Atualizado
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <p className="text-xs text-muted-foreground font-mono">
+                              v{product.version}
+                            </p>
+                            {product.fileName && (
+                              <span className="flex items-center gap-0.5 text-xs text-primary">
+                                <Paperclip className="h-3 w-3" />
+                                <span className="hidden sm:inline truncate max-w-[120px]">
+                                  {product.fileName}
+                                </span>
+                              </span>
+                            )}
+                          </div>
                         </td>
                         <td className="px-4 py-3 hidden md:table-cell">
                           <CategoryBadge category={product.category} />
@@ -679,7 +793,16 @@ export function AdminPage() {
       </div>
 
       {/* ── Product Form Modal ─────────────────────────────── */}
-      <Dialog open={productFormOpen} onOpenChange={setProductFormOpen}>
+      <Dialog
+        open={productFormOpen}
+        onOpenChange={(open) => {
+          setProductFormOpen(open);
+          if (!open) {
+            resetFileState();
+            resetUpdateState();
+          }
+        }}
+      >
         <DialogContent className="max-w-xl border-border bg-card max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="font-display flex items-center gap-2">
@@ -830,6 +953,126 @@ export function AdminPage() {
                 className="bg-background border-border"
               />
             </div>
+
+            {/* File Upload */}
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium text-foreground">
+                Arquivo para Download
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Arquivo que o comprador poderá fazer download após a compra.
+              </p>
+              <input
+                ref={fileInputRef}
+                type="file"
+                className="hidden"
+                data-ocid="admin.product_form.upload_button"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleFileSelect(file);
+                  // reset value so same file can be re-selected
+                  e.target.value = "";
+                }}
+              />
+              {uploadedFileName ? (
+                <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 p-3">
+                  <Paperclip className="h-4 w-4 text-primary shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">
+                      {uploadedFileName}
+                    </p>
+                    {uploadedFileSize > 0 && (
+                      <p className="text-xs text-muted-foreground">
+                        {formatFileSize(uploadedFileSize)}
+                      </p>
+                    )}
+                  </div>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => {
+                      resetFileState();
+                    }}
+                    className="h-7 w-7 p-0 shrink-0 hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  data-ocid="admin.product_form.dropzone"
+                  onClick={() => fileInputRef.current?.click()}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setIsDragOver(true);
+                  }}
+                  onDragLeave={() => setIsDragOver(false)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setIsDragOver(false);
+                    const file = e.dataTransfer.files?.[0];
+                    if (file) handleFileSelect(file);
+                  }}
+                  className={`w-full flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-6 text-center cursor-pointer transition-colors ${
+                    isDragOver
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:border-primary/50 hover:bg-muted/20"
+                  }`}
+                >
+                  <Upload
+                    className={`h-6 w-6 ${isDragOver ? "text-primary" : "text-muted-foreground"}`}
+                  />
+                  <div>
+                    <p className="text-sm font-medium text-foreground">
+                      Clique para selecionar ou arraste o arquivo
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Qualquer tipo de arquivo aceito
+                    </p>
+                  </div>
+                </button>
+              )}
+            </div>
+
+            {/* Mark as Updated (only for editing) */}
+            {editingProduct !== null && (
+              <div className="space-y-3 rounded-lg border border-border p-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Zap className="h-4 w-4 text-amber-400" />
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        Marcar como atualizado
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Exibe badge "Atualizado" para os usuários
+                      </p>
+                    </div>
+                  </div>
+                  <Switch
+                    data-ocid="admin.product_form.mark_updated_switch"
+                    checked={markAsUpdated}
+                    onCheckedChange={setMarkAsUpdated}
+                  />
+                </div>
+                {markAsUpdated && (
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground">
+                      Nota de atualização (opcional)
+                    </Label>
+                    <Input
+                      data-ocid="admin.product_form.update_note_input"
+                      value={updateNote}
+                      onChange={(e) => setUpdateNote(e.target.value)}
+                      placeholder="Ex: Corrigido bug crítico, nova funcionalidade X..."
+                      className="bg-background border-border text-sm"
+                    />
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Active toggle */}
             <div className="flex items-center justify-between rounded-lg border border-border p-3">

@@ -14,6 +14,7 @@ import {
   RefreshCw,
   ShoppingCart,
   Tag,
+  Zap,
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -92,6 +93,12 @@ export function ProductDetailPage() {
                     <span className="text-xs font-mono bg-muted/50 text-muted-foreground px-1.5 py-0.5 rounded border border-border">
                       v{product.version}
                     </span>
+                    {product.updatedAt && (
+                      <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                        <Zap className="h-3 w-3" />
+                        Atualizado
+                      </span>
+                    )}
                     {!product.isActive && (
                       <span className="text-xs text-destructive bg-destructive/10 border border-destructive/30 px-2 py-0.5 rounded-full">
                         Indisponível
@@ -171,14 +178,48 @@ export function ProductDetailPage() {
                     )}
                   </p>
                 )}
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="mt-3 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10"
-                >
-                  <Download className="mr-1.5 h-3.5 w-3.5" />
-                  Download do Arquivo
-                </Button>
+                {product.fileName && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="mt-3 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10"
+                    onClick={() => {
+                      if (!product.fileId) {
+                        toast.error("Arquivo não disponível.");
+                        return;
+                      }
+                      const fileData = localStorage.getItem(product.fileId);
+                      if (!fileData) {
+                        toast.error("Arquivo não disponível.");
+                        return;
+                      }
+                      try {
+                        const base64 = fileData.includes(",")
+                          ? fileData.split(",")[1]
+                          : fileData;
+                        const byteString = atob(base64);
+                        const ab = new ArrayBuffer(byteString.length);
+                        const ia = new Uint8Array(ab);
+                        for (let i = 0; i < byteString.length; i++) {
+                          ia[i] = byteString.charCodeAt(i);
+                        }
+                        const blob = new Blob([ab]);
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.href = url;
+                        a.download = product.fileName ?? "arquivo";
+                        a.click();
+                        URL.revokeObjectURL(url);
+                        toast.success("Download iniciado!");
+                      } catch {
+                        toast.error("Erro ao realizar download.");
+                      }
+                    }}
+                  >
+                    <Download className="mr-1.5 h-3.5 w-3.5" />
+                    Download do Arquivo
+                  </Button>
+                )}
               </div>
             )}
           </div>

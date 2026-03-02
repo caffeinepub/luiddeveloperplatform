@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "@/store/RouterContext";
 import { useStore } from "@/store/StoreContext";
 import type { Product } from "@/store/useAppStore";
-import { Eye, ShoppingCart, Tag } from "lucide-react";
+import { Eye, ShoppingCart, Tag, Zap } from "lucide-react";
 import { CategoryBadge } from "./CategoryBadge";
 import { StarRating } from "./StarRating";
 
@@ -50,9 +50,17 @@ export function ProductCard({ product, index, onBuy }: ProductCardProps) {
           <h3 className="font-display font-semibold text-base text-foreground leading-tight line-clamp-1">
             {product.name}
           </h3>
-          <span className="shrink-0 text-xs font-mono bg-muted/50 text-muted-foreground px-1.5 py-0.5 rounded border border-border">
-            v{product.version}
-          </span>
+          <div className="flex items-center gap-1 shrink-0">
+            {product.updatedAt && (
+              <span className="flex items-center gap-0.5 text-xs px-1.5 py-0.5 rounded-full font-medium bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                <Zap className="h-2.5 w-2.5" />
+                Novo
+              </span>
+            )}
+            <span className="text-xs font-mono bg-muted/50 text-muted-foreground px-1.5 py-0.5 rounded border border-border">
+              v{product.version}
+            </span>
+          </div>
         </div>
         <CategoryBadge category={product.category} />
       </div>

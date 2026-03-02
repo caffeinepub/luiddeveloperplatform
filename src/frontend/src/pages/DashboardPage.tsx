@@ -9,6 +9,7 @@ import {
   CheckCheck,
   Clock,
   Copy,
+  Download,
   ExternalLink,
   Key,
   Mail,
@@ -17,6 +18,7 @@ import {
   Save,
   ShoppingBag,
   User,
+  Zap,
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -178,6 +180,40 @@ export function DashboardPage() {
               <div className="space-y-3">
                 {userOrders.map((order, idx) => {
                   const product = getProduct(order.productId);
+
+                  const handleDownload = () => {
+                    if (!product?.fileId) {
+                      toast.error("Arquivo não disponível.");
+                      return;
+                    }
+                    const fileData = localStorage.getItem(product.fileId);
+                    if (!fileData) {
+                      toast.error("Arquivo não disponível.");
+                      return;
+                    }
+                    try {
+                      const base64 = fileData.includes(",")
+                        ? fileData.split(",")[1]
+                        : fileData;
+                      const byteString = atob(base64);
+                      const ab = new ArrayBuffer(byteString.length);
+                      const ia = new Uint8Array(ab);
+                      for (let i = 0; i < byteString.length; i++) {
+                        ia[i] = byteString.charCodeAt(i);
+                      }
+                      const blob = new Blob([ab]);
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement("a");
+                      a.href = url;
+                      a.download = product.fileName ?? "arquivo";
+                      a.click();
+                      URL.revokeObjectURL(url);
+                      toast.success("Download iniciado!");
+                    } catch {
+                      toast.error("Erro ao realizar download.");
+                    }
+                  };
+
                   return (
                     <div
                       key={order.id}
@@ -191,6 +227,12 @@ export function DashboardPage() {
                           </p>
                           {product && (
                             <CategoryBadge category={product.category} />
+                          )}
+                          {product?.updatedAt && (
+                            <span className="flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-full font-medium bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                              <Zap className="h-2.5 w-2.5" />
+                              Atualizado
+                            </span>
                           )}
                         </div>
                         <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
@@ -223,14 +265,32 @@ export function DashboardPage() {
                               : order.status}
                           </span>
                         </div>
+                        {product?.updatedAt && product.updateNote && (
+                          <p className="text-xs text-emerald-400/80 mt-1.5 flex items-center gap-1">
+                            <Zap className="h-3 w-3 shrink-0" />
+                            {product.updateNote}
+                          </p>
+                        )}
                       </div>
-                      <div className="text-right shrink-0">
+                      <div className="flex flex-col items-end gap-2 shrink-0">
                         <p className="font-display font-bold text-foreground">
                           R$ {order.amount.toFixed(2)}
                         </p>
                         <p className="text-xs font-mono text-muted-foreground truncate max-w-[160px]">
                           {order.licenseKey}
                         </p>
+                        {product?.fileName && (
+                          <Button
+                            data-ocid={`dashboard.purchases.download_button.${idx + 1}`}
+                            size="sm"
+                            variant="outline"
+                            onClick={handleDownload}
+                            className="h-7 text-xs border-primary/40 text-primary hover:bg-primary/10"
+                          >
+                            <Download className="mr-1 h-3 w-3" />
+                            Baixar
+                          </Button>
+                        )}
                       </div>
                     </div>
                   );
@@ -276,17 +336,31 @@ export function DashboardPage() {
                     >
                       <div className="flex items-start justify-between mb-3">
                         <div>
-                          <p className="font-semibold text-foreground text-sm">
-                            {getProductName(license.productId)}
-                          </p>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <p className="font-semibold text-foreground text-sm">
+                              {getProductName(license.productId)}
+                            </p>
+                            {product?.updatedAt && (
+                              <span className="flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-full font-medium bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                                <Zap className="h-2.5 w-2.5" />
+                                Atualizado
+                              </span>
+                            )}
+                          </div>
                           {product && (
                             <div className="mt-1">
                               <CategoryBadge category={product.category} />
                             </div>
                           )}
+                          {product?.updatedAt && product.updateNote && (
+                            <p className="text-xs text-emerald-400/80 mt-1 flex items-center gap-1">
+                              <Zap className="h-3 w-3 shrink-0" />
+                              {product.updateNote}
+                            </p>
+                          )}
                         </div>
                         <span
-                          className={`text-xs px-2 py-1 rounded-full font-medium ${
+                          className={`text-xs px-2 py-1 rounded-full font-medium shrink-0 ${
                             license.isActive
                               ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
                               : "bg-muted text-muted-foreground"

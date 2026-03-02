@@ -28,6 +28,9 @@ export interface Product {
   priceSubscription: number;
   fileId?: string;
   fileName?: string;
+  fileSize?: number;
+  updatedAt?: number;
+  updateNote?: string;
   isActive: boolean;
   createdAt: number;
   rating: number;
@@ -504,6 +507,7 @@ export function useAppStore(): AppState {
   }, []);
 
   const deleteProduct = useCallback((id: number) => {
+    localStorage.removeItem(`ldp_file_${id}`);
     setProducts((prev) => prev.filter((p) => p.id !== id));
   }, []);
 
