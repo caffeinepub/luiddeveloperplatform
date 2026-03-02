@@ -4,10 +4,10 @@ import { Label } from "@/components/ui/label";
 import { useRouter } from "@/store/RouterContext";
 import { useStore } from "@/store/StoreContext";
 import { AlertCircle, CheckCircle, UserPlus, Zap } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export function RegisterPage() {
-  const { register } = useStore();
+  const { register, currentUser } = useStore();
   const { navigate } = useRouter();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -15,6 +15,12 @@ export function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (currentUser) {
+      navigate("dashboard");
+    }
+  }, [currentUser, navigate]);
 
   const validateEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
 

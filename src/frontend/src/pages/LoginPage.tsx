@@ -4,15 +4,21 @@ import { Label } from "@/components/ui/label";
 import { useRouter } from "@/store/RouterContext";
 import { useStore } from "@/store/StoreContext";
 import { AlertCircle, LogIn, Zap } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export function LoginPage() {
-  const { login } = useStore();
+  const { login, currentUser } = useStore();
   const { navigate } = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (currentUser) {
+      navigate("dashboard");
+    }
+  }, [currentUser, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

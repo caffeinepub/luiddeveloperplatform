@@ -313,9 +313,11 @@ export function HomePage() {
               <Button
                 variant="outline"
                 className="w-full border-border hover:bg-accent"
-                onClick={() => navigate("register")}
+                onClick={() =>
+                  navigate(currentUser ? "marketplace" : "register")
+                }
               >
-                Começar Grátis
+                {currentUser ? "Explorar Marketplace" : "Começar Grátis"}
               </Button>
             </div>
 
@@ -353,9 +355,11 @@ export function HomePage() {
               </ul>
               <Button
                 className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
-                onClick={() => navigate("register")}
+                onClick={() =>
+                  navigate(currentUser ? "marketplace" : "register")
+                }
               >
-                Começar Pro
+                {currentUser ? "Explorar Marketplace" : "Começar Pro"}
               </Button>
             </div>
 
@@ -390,9 +394,11 @@ export function HomePage() {
               <Button
                 variant="outline"
                 className="w-full border-border hover:bg-accent"
-                onClick={() => navigate("register")}
+                onClick={() =>
+                  navigate(currentUser ? "marketplace" : "register")
+                }
               >
-                Falar com Vendas
+                {currentUser ? "Explorar Marketplace" : "Falar com Vendas"}
               </Button>
             </div>
           </div>
