@@ -87,6 +87,7 @@ export function AdminPage() {
     addProduct,
     updateProduct,
     deleteProduct,
+    isLoading,
   } = useStore();
   const { navigate } = useRouter();
 
@@ -116,6 +117,22 @@ export function AdminPage() {
   if (!currentUser || currentUser.role !== "admin") {
     navigate("home");
     return null;
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen pt-24 pb-20 flex items-center justify-center">
+        <div
+          data-ocid="admin.loading_state"
+          className="flex flex-col items-center gap-4"
+        >
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary/30 border-t-primary" />
+          <p className="text-sm text-muted-foreground">
+            Carregando dados da plataforma...
+          </p>
+        </div>
+      </div>
+    );
   }
 
   // ── Metrics ──────────────────────────────────────────────────────
@@ -228,7 +245,6 @@ export function AdminPage() {
     }
 
     setFormLoading(true);
-    await new Promise((r) => setTimeout(r, 400));
 
     const data = {
       name: formData.name.trim(),
@@ -245,7 +261,7 @@ export function AdminPage() {
     };
 
     if (editingProduct) {
-      // Handle file for edit - store metadata only (no localStorage)
+      // Handle file for edit - store metadata only
       let fileUpdates: Partial<Product> = {};
       if (uploadedFileData) {
         const fileKey = `ldp_file_${editingProduct.id}`;
@@ -280,18 +296,18 @@ export function AdminPage() {
         };
       }
 
-      updateProduct(editingProduct.id, {
+      await updateProduct(editingProduct.id, {
         ...data,
         ...fileUpdates,
         ...updateFields,
       });
       toast.success("Produto atualizado com sucesso!");
     } else {
-      const newProduct = addProduct(data);
+      const newProduct = await addProduct(data);
       if (uploadedFileData) {
-        // Store file metadata only — actual file content stored in memory for this session
+        // Store file metadata only
         const fileKey = `ldp_file_${newProduct.id}`;
-        updateProduct(newProduct.id, {
+        await updateProduct(newProduct.id, {
           fileId: fileKey,
           fileName: uploadedFileName,
           fileSize: uploadedFileSize,
@@ -304,8 +320,8 @@ export function AdminPage() {
     setProductFormOpen(false);
   };
 
-  const handleDelete = (id: number) => {
-    deleteProduct(id);
+  const handleDelete = async (id: number) => {
+    await deleteProduct(id);
     setDeleteConfirmId(null);
     toast.success("Produto removido.");
   };
@@ -618,8 +634,8 @@ export function AdminPage() {
                           <button
                             type="button"
                             data-ocid={`admin.product.toggle_button.${idx + 1}`}
-                            onClick={() => {
-                              toggleProductActive(product.id);
+                            onClick={async () => {
+                              await toggleProductActive(product.id);
                               toast.success(
                                 `Produto ${product.isActive ? "desativado" : "ativado"}.`,
                               );
@@ -755,8 +771,8 @@ export function AdminPage() {
                                 size="sm"
                                 variant="outline"
                                 disabled={isSelf}
-                                onClick={() => {
-                                  toggleUserActive(user.id);
+                                onClick={async () => {
+                                  await toggleUserActive(user.id);
                                   toast.success(
                                     `Usuário ${user.isActive ? "desativado" : "ativado"}.`,
                                   );
@@ -1224,9 +1240,9 @@ export function AdminPage() {
             <Button
               data-ocid="admin.user.delete_confirm_button"
               variant="destructive"
-              onClick={() => {
+              onClick={async () => {
                 if (deleteUserConfirmId) {
-                  deleteUser(deleteUserConfirmId);
+                  await deleteUser(deleteUserConfirmId);
                   setDeleteUserConfirmId(null);
                   toast.success("Usuário excluído.");
                 }
@@ -1277,8 +1293,8 @@ export function AdminPage() {
             <Button
               data-ocid="admin.reset_orders.confirm_button"
               variant="destructive"
-              onClick={() => {
-                resetOrders();
+              onClick={async () => {
+                await resetOrders();
                 setResetOrdersConfirm(false);
                 toast.success("Registro de receita resetado com sucesso.");
               }}

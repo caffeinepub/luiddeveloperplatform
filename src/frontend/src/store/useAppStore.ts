@@ -99,171 +99,125 @@ export function generateLicenseKey(
   return `LUID-${parts.join("-")}`;
 }
 
-// ─── Seed Data ────────────────────────────────────────────────────────────────
+// ─── Candid Converters ────────────────────────────────────────────────────────
 
-const SEED_ADMIN: User = {
-  id: 1,
-  username: "SidneiCosta00",
-  passwordHash: simpleHash("Nikebolado@4"),
-  email: "admin@luiddev.com",
-  role: "admin",
-  isActive: true,
-  createdAt: Date.now() - 1000 * 60 * 60 * 24 * 30,
-  purchasedProductIds: [],
-};
+function candidCategoryToTs(c: unknown): Category {
+  if (c && typeof c === "object") {
+    if ("discordBots" in c) return "discordBots";
+    if ("automationScripts" in c) return "automationScripts";
+    if ("aiTools" in c) return "aiTools";
+  }
+  return "apis";
+}
 
-const SEED_PRODUCTS: Product[] = [
-  {
-    id: 1,
-    name: "Discord Moderation Bot",
-    description:
-      "Bot completo de moderação para Discord com anti-spam, auto-ban, sistema de warns, logs detalhados e comandos personalizáveis. Integração com múltiplos servidores.",
-    version: "2.1.0",
-    category: "discordBots",
-    priceOneTime: 29.99,
-    priceSubscription: 9.99,
-    isActive: true,
-    createdAt: Date.now() - 1000 * 60 * 60 * 24 * 20,
-    rating: 4.8,
-    reviewCount: 142,
-    tags: ["discord", "moderação", "anti-spam", "bots"],
-  },
-  {
-    id: 2,
-    name: "Music Bot Pro",
-    description:
-      "Player de música avançado para Discord com suporte a Spotify, YouTube e SoundCloud. Filas ilimitadas, efeitos de áudio, playlists e muito mais.",
-    version: "1.5.2",
-    category: "discordBots",
-    priceOneTime: 19.99,
-    priceSubscription: 6.99,
-    isActive: true,
-    createdAt: Date.now() - 1000 * 60 * 60 * 24 * 18,
-    rating: 4.6,
-    reviewCount: 89,
-    tags: ["discord", "música", "spotify", "youtube"],
-  },
-  {
-    id: 3,
-    name: "Welcome & Roles Bot",
-    description:
-      "Sistema completo de boas-vindas, atribuição automática de cargos, verificação de membros e mensagens personalizadas com embeds dinâmicos.",
-    version: "3.0.1",
-    category: "discordBots",
-    priceOneTime: 14.99,
-    priceSubscription: 4.99,
-    isActive: true,
-    createdAt: Date.now() - 1000 * 60 * 60 * 24 * 15,
-    rating: 4.5,
-    reviewCount: 67,
-    tags: ["discord", "roles", "onboarding", "verificação"],
-  },
-  {
-    id: 4,
-    name: "Web Scraper Pro",
-    description:
-      "Script Python de alto desempenho para raspagem de dados web. Suporte a JavaScript, proxies rotativos, detecção anti-bot e exportação para CSV/JSON/Database.",
-    version: "1.2.0",
-    category: "automationScripts",
-    priceOneTime: 39.99,
-    priceSubscription: 12.99,
-    isActive: true,
-    createdAt: Date.now() - 1000 * 60 * 60 * 24 * 25,
-    rating: 4.7,
-    reviewCount: 203,
-    tags: ["python", "scraping", "dados", "automação"],
-  },
-  {
-    id: 5,
-    name: "Social Media Scheduler",
-    description:
-      "Automatize postagens em Instagram, Twitter, LinkedIn e Facebook. Calendário editorial, análise de engajamento, sugestões de horários e relatórios detalhados.",
-    version: "2.0.3",
-    category: "automationScripts",
-    priceOneTime: 49.99,
-    priceSubscription: 15.99,
-    isActive: true,
-    createdAt: Date.now() - 1000 * 60 * 60 * 24 * 22,
-    rating: 4.4,
-    reviewCount: 156,
-    tags: ["social media", "agendamento", "instagram", "twitter"],
-  },
-  {
-    id: 6,
-    name: "Email Automation Suite",
-    description:
-      "Suite completa para automação de e-mail marketing. Sequências de follow-up, personalização dinâmica, A/B testing, segmentação avançada e analytics.",
-    version: "1.8.1",
-    category: "automationScripts",
-    priceOneTime: 34.99,
-    priceSubscription: 11.99,
-    isActive: true,
-    createdAt: Date.now() - 1000 * 60 * 60 * 24 * 19,
-    rating: 4.6,
-    reviewCount: 98,
-    tags: ["email", "marketing", "automação", "newsletter"],
-  },
-  {
-    id: 7,
-    name: "AI Content Generator",
-    description:
-      "Gerador de conteúdo com IA para blogs, redes sociais, e-mails e páginas web. Múltiplos idiomas, ton de voz configurável e integração direta com WordPress/Shopify.",
-    version: "1.0.5",
-    category: "aiTools",
-    priceOneTime: 59.99,
-    priceSubscription: 19.99,
-    isActive: true,
-    createdAt: Date.now() - 1000 * 60 * 60 * 24 * 10,
-    rating: 4.9,
-    reviewCount: 312,
-    tags: ["IA", "conteúdo", "GPT", "escrita"],
-  },
-  {
-    id: 8,
-    name: "AI Image Enhancer",
-    description:
-      "Upscaling de imagens com IA até 4x sem perda de qualidade. Remoção de ruído, restauração de fotos antigas, melhoramento de nitidez e processamento em lote.",
-    version: "2.2.0",
-    category: "aiTools",
-    priceOneTime: 44.99,
-    priceSubscription: 14.99,
-    isActive: true,
-    createdAt: Date.now() - 1000 * 60 * 60 * 24 * 12,
-    rating: 4.7,
-    reviewCount: 178,
-    tags: ["IA", "imagem", "upscaling", "restauração"],
-  },
-  {
-    id: 9,
-    name: "Crypto Price API",
-    description:
-      "API REST para preços em tempo real de 5000+ criptomoedas. WebSocket para streaming de dados, histórico completo, alertas de preço e integração fácil.",
-    version: "3.1.0",
-    category: "apis",
-    priceOneTime: 24.99,
-    priceSubscription: 8.99,
-    isActive: true,
-    createdAt: Date.now() - 1000 * 60 * 60 * 24 * 30,
-    rating: 4.5,
-    reviewCount: 234,
-    tags: ["crypto", "API", "preços", "websocket"],
-  },
-  {
-    id: 10,
-    name: "SMS Gateway API",
-    description:
-      "Gateway SMS com cobertura global em 190+ países. Envio em massa, verificação por OTP, relatórios de entrega, webhooks e SDKs para múltiplas linguagens.",
-    version: "1.4.2",
-    category: "apis",
-    priceOneTime: 49.99,
-    priceSubscription: 16.99,
-    isActive: true,
-    createdAt: Date.now() - 1000 * 60 * 60 * 24 * 28,
-    rating: 4.3,
-    reviewCount: 145,
-    tags: ["SMS", "API", "gateway", "OTP"],
-  },
-];
+function tsCategoryToCandid(c: Category): unknown {
+  return { [c]: null };
+}
+
+function candidRoleToTs(r: unknown): UserRole {
+  if (r && typeof r === "object" && "admin" in r) return "admin";
+  return "user";
+}
+
+function candidOrderTypeToTs(t: unknown): OrderType {
+  if (t && typeof t === "object" && "subscription" in t) return "subscription";
+  return "oneTime";
+}
+
+function tsOrderTypeToCandid(t: OrderType): unknown {
+  return { [t]: null };
+}
+
+function candidOrderStatusToTs(s: unknown): OrderStatus {
+  if (s && typeof s === "object") {
+    if ("refunded" in s) return "refunded";
+    if ("completed" in s) return "completed";
+  }
+  return "pending";
+}
+
+// ─── Mappers ─────────────────────────────────────────────────────────────────
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapUser(u: any): User {
+  return {
+    id: Number(u.id),
+    username: u.username,
+    passwordHash: u.passwordHash,
+    email: u.email,
+    role: candidRoleToTs(u.role),
+    isActive: u.isActive,
+    createdAt: Number(u.createdAt),
+    purchasedProductIds: (u.purchasedProductIds ?? []).map(Number),
+  };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapProduct(p: any): Product {
+  return {
+    id: Number(p.id),
+    name: p.name,
+    description: p.description,
+    version: p.version,
+    category: candidCategoryToTs(p.category),
+    priceOneTime: p.priceOneTime,
+    priceSubscription: p.priceSubscription,
+    fileId: p.fileId && p.fileId.length > 0 ? p.fileId[0] : undefined,
+    fileName: p.fileName && p.fileName.length > 0 ? p.fileName[0] : undefined,
+    fileSize:
+      p.fileSize && p.fileSize.length > 0 ? Number(p.fileSize[0]) : undefined,
+    updatedAt:
+      p.updatedAt && p.updatedAt.length > 0
+        ? Number(p.updatedAt[0])
+        : undefined,
+    updateNote:
+      p.updateNote && p.updateNote.length > 0 ? p.updateNote[0] : undefined,
+    versionHistory: (p.versionHistory ?? []).map(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (v: any): VersionHistoryEntry => ({
+        version: v.version,
+        note: v.note && v.note.length > 0 ? v.note[0] : undefined,
+        updatedAt: Number(v.updatedAt),
+      }),
+    ),
+    isActive: p.isActive,
+    createdAt: Number(p.createdAt),
+    rating: p.rating ?? 0,
+    reviewCount: Number(p.reviewCount ?? 0),
+    tags: p.tags ?? [],
+  };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapOrder(o: any): Order {
+  return {
+    id: Number(o.id),
+    userId: Number(o.userId),
+    productId: Number(o.productId),
+    orderType: candidOrderTypeToTs(o.orderType),
+    amount: o.amount,
+    status: candidOrderStatusToTs(o.status),
+    createdAt: Number(o.createdAt),
+    licenseKey: o.licenseKey,
+  };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapLicense(l: any): License {
+  return {
+    id: Number(l.id),
+    userId: Number(l.userId),
+    productId: Number(l.productId),
+    orderId: Number(l.orderId),
+    key: l.key,
+    isActive: l.isActive,
+    expiresAt:
+      l.expiresAt && l.expiresAt.length > 0
+        ? Number(l.expiresAt[0])
+        : undefined,
+    createdAt: Number(l.createdAt),
+  };
+}
 
 // ─── Store State ──────────────────────────────────────────────────────────────
 
@@ -273,33 +227,39 @@ export interface AppState {
   products: Product[];
   orders: Order[];
   licenses: License[];
+  isLoading: boolean;
   login: (
     username: string,
     password: string,
-  ) => { success: boolean; error?: string };
+  ) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   register: (
     username: string,
     email: string,
     password: string,
-  ) => { success: boolean; error?: string };
+  ) => Promise<{ success: boolean; error?: string }>;
   addProduct: (
     data: Omit<Product, "id" | "createdAt" | "rating" | "reviewCount">,
-  ) => Product;
+  ) => Promise<Product>;
   updateProduct: (
     id: number,
     data: Partial<Product> & { _appendVersionHistory?: VersionHistoryEntry },
-  ) => void;
-  deleteProduct: (id: number) => void;
-  toggleProductActive: (id: number) => void;
-  toggleUserActive: (id: number) => void;
-  deleteUser: (id: number) => void;
-  resetOrders: () => void;
+  ) => Promise<void>;
+  deleteProduct: (id: number) => Promise<void>;
+  toggleProductActive: (id: number) => Promise<void>;
+  toggleUserActive: (id: number) => Promise<void>;
+  deleteUser: (id: number) => Promise<void>;
+  resetOrders: () => Promise<void>;
   purchaseProduct: (
     productId: number,
     orderType: OrderType,
-  ) => { success: boolean; order?: Order; license?: License; error?: string };
-  updateUserEmail: (email: string) => void;
+  ) => Promise<{
+    success: boolean;
+    order?: Order;
+    license?: License;
+    error?: string;
+  }>;
+  updateUserEmail: (email: string) => Promise<void>;
 }
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
@@ -307,63 +267,83 @@ export interface AppState {
 export function useAppStore(): AppState {
   const { actor } = useActor();
   const initializedRef = useRef(false);
-  const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
-    null,
-  );
 
-  const [users, setUsers] = useState<User[]>([SEED_ADMIN]);
-  const [products, setProducts] = useState<Product[]>(SEED_PRODUCTS);
+  const [users, setUsers] = useState<User[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [licenses, setLicenses] = useState<License[]>([]);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Initialize from backend on mount and set up polling
-  useEffect(() => {
-    if (actor && !initializedRef.current) {
-      initializedRef.current = true;
-      actor.initialize().catch(() => {
-        // Backend initialization is best-effort; in-memory seed data is the fallback
-      });
+  // ── refreshAll ──────────────────────────────────────────────────────────
+  const refreshAll = useCallback(async () => {
+    if (!actor) return;
+    try {
+      const [us, ps, os, ls] = await Promise.all([
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (actor as any).getUsers(),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (actor as any).getProducts(),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (actor as any).getOrders(),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (actor as any).getLicenses(),
+      ]);
+      setUsers((us as unknown[]).map(mapUser));
+      setProducts((ps as unknown[]).map(mapProduct));
+      setOrders((os as unknown[]).map(mapOrder));
+      setLicenses((ls as unknown[]).map(mapLicense));
+    } catch (e) {
+      console.error("[LuidDev] refreshAll error:", e);
     }
   }, [actor]);
 
-  // Polling mechanism: every 5 seconds, log sync status
-  // Real-time sync will be enabled when backend exposes more query functions
+  // ── Init on mount ───────────────────────────────────────────────────────
   useEffect(() => {
-    pollingIntervalRef.current = setInterval(() => {
-      // Polling heartbeat — real data sync will be implemented
-      // when backend exposes read functions (getProducts, getUsers, etc.)
-      // console.log("[LuidDev] polling...");
-    }, 5000);
+    if (!actor || initializedRef.current) return;
+    initializedRef.current = true;
+    setIsLoading(true);
+    actor
+      .initialize()
+      .then(() => refreshAll())
+      .finally(() => setIsLoading(false));
+  }, [actor, refreshAll]);
 
-    return () => {
-      if (pollingIntervalRef.current) {
-        clearInterval(pollingIntervalRef.current);
-      }
-    };
-  }, []);
+  // ── Polling every 8s ────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!actor) return;
+    const interval = setInterval(() => {
+      refreshAll();
+    }, 8000);
+    return () => clearInterval(interval);
+  }, [actor, refreshAll]);
+
+  // ── Auth ─────────────────────────────────────────────────────────────────
 
   const login = useCallback(
-    (
+    async (
       username: string,
       password: string,
-    ): { success: boolean; error?: string } => {
-      const user = users.find(
-        (u) => u.username.toLowerCase() === username.toLowerCase(),
-      );
-      if (!user) return { success: false, error: "Usuário não encontrado." };
-      if (!user.isActive)
+    ): Promise<{ success: boolean; error?: string }> => {
+      if (!actor)
+        return { success: false, error: "Serviço indisponível. Aguarde..." };
+      try {
+        const hash = simpleHash(password);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const result = await (actor as any).login(username, hash);
+        if ("err" in result) return { success: false, error: result.err };
+        const user = mapUser(result.ok);
+        setCurrentUser(user);
+        return { success: true };
+      } catch (e) {
+        console.error("[LuidDev] login error:", e);
         return {
           success: false,
-          error: "Conta desativada. Entre em contato com o suporte.",
+          error: "Erro ao fazer login. Tente novamente.",
         };
-      const hash = simpleHash(password);
-      if (user.passwordHash !== hash)
-        return { success: false, error: "Senha incorreta." };
-      setCurrentUser(user);
-      return { success: true };
+      }
     },
-    [users],
+    [actor],
   );
 
   const logout = useCallback(() => {
@@ -371,195 +351,296 @@ export function useAppStore(): AppState {
   }, []);
 
   const register = useCallback(
-    (
+    async (
       username: string,
       email: string,
       password: string,
-    ): { success: boolean; error?: string } => {
-      const existingUsername = users.find(
-        (u) => u.username.toLowerCase() === username.toLowerCase(),
-      );
-      if (existingUsername)
-        return { success: false, error: "Nome de usuário já está em uso." };
-      const existingEmail = users.find(
-        (u) => u.email.toLowerCase() === email.toLowerCase(),
-      );
-      if (existingEmail)
-        return { success: false, error: "E-mail já cadastrado." };
-
-      const newUser: User = {
-        id: Date.now(),
-        username,
-        email,
-        passwordHash: simpleHash(password),
-        role: "user",
-        isActive: true,
-        createdAt: Date.now(),
-        purchasedProductIds: [],
-      };
-      setUsers((prev) => [...prev, newUser]);
-      setCurrentUser(newUser);
-      return { success: true };
+    ): Promise<{ success: boolean; error?: string }> => {
+      if (!actor)
+        return { success: false, error: "Serviço indisponível. Aguarde..." };
+      try {
+        const hash = simpleHash(password);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const result = await (actor as any).register(username, email, hash);
+        if ("err" in result) return { success: false, error: result.err };
+        const user = mapUser(result.ok);
+        setCurrentUser(user);
+        // Refresh users list
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const allUsers = await (actor as any).getUsers();
+        setUsers((allUsers as unknown[]).map(mapUser));
+        return { success: true };
+      } catch (e) {
+        console.error("[LuidDev] register error:", e);
+        return {
+          success: false,
+          error: "Erro ao criar conta. Tente novamente.",
+        };
+      }
     },
-    [users],
+    [actor],
   );
 
+  // ── Products ─────────────────────────────────────────────────────────────
+
   const addProduct = useCallback(
-    (
+    async (
       data: Omit<Product, "id" | "createdAt" | "rating" | "reviewCount">,
-    ): Product => {
-      const newProduct: Product = {
-        ...data,
-        id: Date.now(),
-        createdAt: Date.now(),
-        rating: 0,
-        reviewCount: 0,
-      };
-      setProducts((prev) => [...prev, newProduct]);
-      return newProduct;
+    ): Promise<Product> => {
+      if (!actor) throw new Error("Actor indisponível");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const p = await (actor as any).addProduct(
+        data.name,
+        data.description,
+        data.version,
+        tsCategoryToCandid(data.category),
+        data.priceOneTime,
+        data.priceSubscription,
+        data.fileId ? [data.fileId] : [],
+        data.fileName ? [data.fileName] : [],
+        data.fileSize ? [BigInt(data.fileSize)] : [],
+        data.tags,
+      );
+      const mapped = mapProduct(p);
+      setProducts((prev) => [...prev, mapped]);
+      return mapped;
     },
-    [],
+    [actor],
   );
 
   const updateProduct = useCallback(
-    (
+    async (
       id: number,
       data: Partial<Product> & { _appendVersionHistory?: VersionHistoryEntry },
-    ) => {
+    ): Promise<void> => {
+      if (!actor) return;
       const { _appendVersionHistory, ...rest } = data;
-      setProducts((prev) =>
-        prev.map((p) => {
-          if (p.id !== id) return p;
-          const updated = { ...p, ...rest };
-          if (_appendVersionHistory) {
-            updated.versionHistory = [
-              ...(p.versionHistory ?? []),
-              _appendVersionHistory,
-            ];
-          }
-          return updated;
-        }),
-      );
+      const appendEntry = _appendVersionHistory
+        ? [
+            {
+              version: _appendVersionHistory.version,
+              note: _appendVersionHistory.note
+                ? [_appendVersionHistory.note]
+                : [],
+              updatedAt: BigInt(_appendVersionHistory.updatedAt),
+            },
+          ]
+        : [];
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const result = await (actor as any).updateProduct(
+          BigInt(id),
+          rest.name ? [rest.name] : [],
+          rest.description ? [rest.description] : [],
+          rest.version ? [rest.version] : [],
+          rest.category ? [tsCategoryToCandid(rest.category)] : [],
+          rest.priceOneTime !== undefined ? [rest.priceOneTime] : [],
+          rest.priceSubscription !== undefined ? [rest.priceSubscription] : [],
+          rest.fileId !== undefined ? [rest.fileId] : [],
+          rest.fileName !== undefined ? [rest.fileName] : [],
+          rest.fileSize !== undefined ? [BigInt(rest.fileSize)] : [],
+          rest.isActive !== undefined ? [rest.isActive] : [],
+          rest.updateNote ? [rest.updateNote] : [],
+          appendEntry,
+        );
+        if (result && "ok" in result) {
+          const mapped = mapProduct(result.ok);
+          setProducts((prev) => prev.map((p) => (p.id === id ? mapped : p)));
+        }
+      } catch (e) {
+        console.error("[LuidDev] updateProduct error:", e);
+      }
     },
-    [],
+    [actor],
   );
 
-  const deleteProduct = useCallback((id: number) => {
-    setProducts((prev) => prev.filter((p) => p.id !== id));
-  }, []);
+  const deleteProduct = useCallback(
+    async (id: number): Promise<void> => {
+      if (!actor) return;
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await (actor as any).deleteProduct(BigInt(id));
+        setProducts((prev) => prev.filter((p) => p.id !== id));
+      } catch (e) {
+        console.error("[LuidDev] deleteProduct error:", e);
+      }
+    },
+    [actor],
+  );
 
-  const toggleProductActive = useCallback((id: number) => {
-    setProducts((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, isActive: !p.isActive } : p)),
-    );
-  }, []);
+  const toggleProductActive = useCallback(
+    async (id: number): Promise<void> => {
+      if (!actor) return;
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const result = await (actor as any).toggleProductActive(BigInt(id));
+        if (result && "ok" in result) {
+          const mapped = mapProduct(result.ok);
+          setProducts((prev) => prev.map((p) => (p.id === id ? mapped : p)));
+        }
+      } catch (e) {
+        console.error("[LuidDev] toggleProductActive error:", e);
+      }
+    },
+    [actor],
+  );
 
-  const toggleUserActive = useCallback((id: number) => {
-    setUsers((prev) =>
-      prev.map((u) => (u.id === id ? { ...u, isActive: !u.isActive } : u)),
-    );
-  }, []);
+  // ── Users ─────────────────────────────────────────────────────────────────
 
-  const deleteUser = useCallback((id: number) => {
-    setUsers((prev) => prev.filter((u) => u.id !== id));
-    setOrders((prev) => prev.filter((o) => o.userId !== id));
-    setLicenses((prev) => prev.filter((l) => l.userId !== id));
-  }, []);
+  const toggleUserActive = useCallback(
+    async (id: number): Promise<void> => {
+      if (!actor) return;
+      try {
+        const currentActive = users.find((u) => u.id === id)?.isActive ?? true;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await (actor as any).updateUser(BigInt(id), [!currentActive], [], []);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const allUsers = await (actor as any).getUsers();
+        setUsers((allUsers as unknown[]).map(mapUser));
+      } catch (e) {
+        console.error("[LuidDev] toggleUserActive error:", e);
+      }
+    },
+    [actor, users],
+  );
 
-  const resetOrders = useCallback(() => {
-    setOrders([]);
-    setLicenses([]);
-    setUsers((prev) => prev.map((u) => ({ ...u, purchasedProductIds: [] })));
-    setCurrentUser((prev) =>
-      prev ? { ...prev, purchasedProductIds: [] } : prev,
-    );
-  }, []);
+  const deleteUser = useCallback(
+    async (id: number): Promise<void> => {
+      if (!actor) return;
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await (actor as any).deleteUser(BigInt(id));
+        await refreshAll();
+      } catch (e) {
+        console.error("[LuidDev] deleteUser error:", e);
+      }
+    },
+    [actor, refreshAll],
+  );
+
+  // ── Orders / Reset ────────────────────────────────────────────────────────
+
+  const resetOrders = useCallback(async (): Promise<void> => {
+    if (!actor) return;
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (actor as any).resetOrders();
+      await refreshAll();
+    } catch (e) {
+      console.error("[LuidDev] resetOrders error:", e);
+    }
+  }, [actor, refreshAll]);
+
+  // ── Purchase ─────────────────────────────────────────────────────────────
 
   const purchaseProduct = useCallback(
-    (
+    async (
       productId: number,
       orderType: OrderType,
-    ): {
+    ): Promise<{
       success: boolean;
       order?: Order;
       license?: License;
       error?: string;
-    } => {
+    }> => {
+      if (!actor) return { success: false, error: "Serviço indisponível." };
       if (!currentUser)
         return { success: false, error: "Usuário não autenticado." };
 
       const product = products.find((p) => p.id === productId);
       if (!product) return { success: false, error: "Produto não encontrado." };
 
-      const orderId = Date.now();
-      const licenseKey = generateLicenseKey(currentUser.id, productId, orderId);
-      const amount =
-        orderType === "oneTime"
-          ? product.priceOneTime
-          : product.priceSubscription;
+      try {
+        const orderId = Date.now();
+        const licenseKey = generateLicenseKey(
+          currentUser.id,
+          productId,
+          orderId,
+        );
+        const amount =
+          orderType === "oneTime"
+            ? product.priceOneTime
+            : product.priceSubscription;
 
-      const newOrder: Order = {
-        id: orderId,
-        userId: currentUser.id,
-        productId,
-        orderType,
-        amount,
-        status: "completed",
-        createdAt: Date.now(),
-        licenseKey,
-      };
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const order = await (actor as any).createOrder(
+          BigInt(currentUser.id),
+          BigInt(productId),
+          tsOrderTypeToCandid(orderType),
+          amount,
+          licenseKey,
+        );
 
-      const licenseId = orderId + 1;
-      const expiresAt =
-        orderType === "subscription"
-          ? Date.now() + 1000 * 60 * 60 * 24 * 30
-          : undefined;
+        const expiresAt: [bigint] | [] =
+          orderType === "subscription"
+            ? [BigInt(Date.now() + 1000 * 60 * 60 * 24 * 30)]
+            : [];
 
-      const newLicense: License = {
-        id: licenseId,
-        userId: currentUser.id,
-        productId,
-        orderId,
-        key: licenseKey,
-        isActive: true,
-        expiresAt,
-        createdAt: Date.now(),
-      };
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const license = await (actor as any).createLicense(
+          BigInt(currentUser.id),
+          BigInt(productId),
+          order.id,
+          licenseKey,
+          expiresAt,
+        );
 
-      setOrders((prev) => [...prev, newOrder]);
-      setLicenses((prev) => [...prev, newLicense]);
-      setCurrentUser((prev) => {
-        if (!prev) return prev;
+        // Update user's purchasedProductIds
+        const newPurchased = [...currentUser.purchasedProductIds, productId];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await (actor as any).updateUser(
+          BigInt(currentUser.id),
+          [],
+          [],
+          [newPurchased.map(BigInt)],
+        );
+
+        // Refresh all state
+        await refreshAll();
+
+        // Update currentUser in memory
+        setCurrentUser((prev) =>
+          prev ? { ...prev, purchasedProductIds: newPurchased } : prev,
+        );
+
         return {
-          ...prev,
-          purchasedProductIds: [...prev.purchasedProductIds, productId],
+          success: true,
+          order: mapOrder(order),
+          license: mapLicense(license),
         };
-      });
-      setUsers((prev) =>
-        prev.map((u) =>
-          u.id === currentUser.id
-            ? {
-                ...u,
-                purchasedProductIds: [...u.purchasedProductIds, productId],
-              }
-            : u,
-        ),
-      );
-
-      return { success: true, order: newOrder, license: newLicense };
+      } catch (e) {
+        console.error("[LuidDev] purchaseProduct error:", e);
+        return {
+          success: false,
+          error: "Erro ao processar compra. Tente novamente.",
+        };
+      }
     },
-    [currentUser, products],
+    [actor, currentUser, products, refreshAll],
   );
 
+  // ── Profile ───────────────────────────────────────────────────────────────
+
   const updateUserEmail = useCallback(
-    (email: string) => {
-      if (!currentUser) return;
-      setUsers((prev) =>
-        prev.map((u) => (u.id === currentUser.id ? { ...u, email } : u)),
-      );
-      setCurrentUser((prev) => (prev ? { ...prev, email } : prev));
+    async (email: string): Promise<void> => {
+      if (!actor || !currentUser) return;
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await (actor as any).updateUser(
+          BigInt(currentUser.id),
+          [],
+          [email],
+          [],
+        );
+        setCurrentUser((prev) => (prev ? { ...prev, email } : prev));
+        setUsers((prev) =>
+          prev.map((u) => (u.id === currentUser.id ? { ...u, email } : u)),
+        );
+      } catch (e) {
+        console.error("[LuidDev] updateUserEmail error:", e);
+      }
     },
-    [currentUser],
+    [actor, currentUser],
   );
 
   return {
@@ -568,6 +649,7 @@ export function useAppStore(): AppState {
     products,
     orders,
     licenses,
+    isLoading,
     login,
     logout,
     register,

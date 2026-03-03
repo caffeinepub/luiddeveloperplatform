@@ -29,8 +29,14 @@ import { toast } from "sonner";
 type Tab = "purchases" | "licenses" | "profile";
 
 export function DashboardPage() {
-  const { currentUser, orders, licenses, products, updateUserEmail } =
-    useStore();
+  const {
+    currentUser,
+    orders,
+    licenses,
+    products,
+    updateUserEmail,
+    isLoading,
+  } = useStore();
   const { navigate } = useRouter();
   const [activeTab, setActiveTab] = useState<Tab>("purchases");
   const [copiedId, setCopiedId] = useState<number | null>(null);
@@ -43,6 +49,22 @@ export function DashboardPage() {
   if (!currentUser) {
     navigate("login");
     return null;
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen pt-24 pb-20 flex items-center justify-center">
+        <div
+          data-ocid="dashboard.loading_state"
+          className="flex flex-col items-center gap-4"
+        >
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary/30 border-t-primary" />
+          <p className="text-sm text-muted-foreground">
+            Carregando seu painel...
+          </p>
+        </div>
+      </div>
+    );
   }
 
   const userOrders = orders.filter((o) => o.userId === currentUser.id);
@@ -66,8 +88,7 @@ export function DashboardPage() {
       return;
     }
     setEmailSaving(true);
-    await new Promise((r) => setTimeout(r, 500));
-    updateUserEmail(newEmail);
+    await updateUserEmail(newEmail);
     setEmailSaving(false);
     toast.success("E-mail atualizado com sucesso!");
   };

@@ -40,9 +40,8 @@ export function PurchaseModal({
   const handleConfirm = async () => {
     if (!product) return;
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 800)); // simulate processing
 
-    const result = purchaseProduct(product.id, orderType);
+    const result = await purchaseProduct(product.id, orderType);
     setLoading(false);
 
     if (result.success && result.license) {

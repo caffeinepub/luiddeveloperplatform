@@ -46,9 +46,8 @@ export function RegisterPage() {
     }
 
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 500));
 
-    const result = register(
+    const result = await register(
       username.trim(),
       email.trim().toLowerCase(),
       password,
